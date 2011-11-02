@@ -1,0 +1,41 @@
+{% extends "main.html" %}
+{% block extra_head %}
+<!-- stylesheets and js libraries here -->
+<link rel="stylesheet" type="text/css" media="screen" href="{{ MEDIA_URL }}/rooms/default.css" />
+{% endblock %}
+
+{% block side_col %}
+<table>
+	<tr><th colspan="2">Legend</th></tr> 
+	<tr><td class="available">&nbsp;</td><td>Available</td></tr>
+	<tr><td class="occupied">&nbsp;</td><td>Occupied</td></tr>
+	<tr><td class="closed">&nbsp;</td><td>Closed</td></tr>
+</table>
+{% endblock %}
+
+{% block main_col %}
+<h2>Current Availability</h2>
+<table>
+	<tr><th>&nbsp;</th>
+	{% for hr in res.times %}
+		<th>{{ hr }}</th>
+	{% endfor %}
+	</tr>
+	
+	{% for room in res.rooms %}
+	<tr>
+		{% for e in room %}
+			{% if room|first = e %}
+			<th>{{ e }}</th>
+			{% else %}
+			<td class="{% if e = -1 %}closed{% else %}{% if e = 1 %}occupied{% else %}available{% endif %}{% endif %}">&nbsp;</td>
+			{% endif %}
+		{% endfor %}
+	</tr>
+	{% endfor %}
+</table>
+{% endblock %}
+
+{% block footer %}
+<!-- js init calls here -->
+{% endblock %}

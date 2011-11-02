@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta language="en-US" />
+	<title>{{ page_title }} - DKL - NPS</title>
+	<link rel="stylesheet" type="text/css" media="screen" href="{{ MEDIA_URL }}/main.css" />
+	{% block extra_head %}{% endblock %}
+	</head>
+	<body>
+		<h1>DKL Study Rooms</h1>
+		<div id="frame">
+			<div id="side_col">
+				{% block side_col %}{% endblock %}
+			</div>
+			
+			<div id="main_col">
+				{% block main_col %}{% endblock %}
+			</div>
+
+			<div style="clear: both;"></div>
+		</div>
+		{% block footer %}{% endblock %}
+	</body>
+</html>
