@@ -15,6 +15,9 @@
 
 {% block main_col %}
 <h2>Current Availability</h2>
+{% if res.rooms|length = 0 or res.times|length = 0 %}
+<p>No rooms have been added yet. Please finish configuring this application in the administrative back-end.</p>
+{% else %}
 <table>
 	<tr><th>&nbsp;</th>
 	{% for hr in res.times %}
@@ -34,6 +37,7 @@
 	</tr>
 	{% endfor %}
 </table>
+{% endif %}
 {% endblock %}
 
 {% block footer %}

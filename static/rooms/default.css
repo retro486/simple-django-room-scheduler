@@ -1,0 +1,37 @@
+#side_col table {
+	width: 100%;
+	margin: 0;
+}
+
+#side_col th {
+	padding-bottom: 0.2em;
+}
+
+#side_col td {
+	font-size: small;
+	padding: 0.2em;
+}
+
+.available {
+	background-color: #0C0;
+	color: #EEE;
+}
+
+.occupied {
+	background-color: #C00;
+	color: #EEE;
+}
+
+.closed {
+	background-color: #333;
+	color: #EEE;
+}
+
+#main_col table {
+	width: 100%;
+	margin: 0;
+}
+
+#main_col th {
+	font-size: small;
+}
