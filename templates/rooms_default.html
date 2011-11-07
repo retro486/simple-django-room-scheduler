@@ -19,7 +19,7 @@
 <p>No rooms have been added yet. Please finish configuring this application in the administrative back-end.</p>
 {% else %}
 <table>
-	<tr><th>&nbsp;</th>
+	<tr><th class="res_left_axis">&nbsp;</th>
 	{% for hr in res.times %}
 		<th>{{ hr }}</th>
 	{% endfor %}
@@ -29,7 +29,7 @@
 	<tr>
 		{% for e in room %}
 			{% if room|first = e %}
-			<th>{{ e }}</th>
+			<th class="res_left_axis">{{ e }}</th>
 			{% else %}
 			<td class="{% if e = -1 %}closed{% else %}{% if e = 1 %}occupied{% else %}available{% endif %}{% endif %}">&nbsp;</td>
 			{% endif %}
