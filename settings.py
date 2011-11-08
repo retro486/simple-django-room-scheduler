@@ -1,6 +1,16 @@
 #################################
 # Custom settings for rooms app
 
+# The default template to use for the front page
+RES_DEFAULT_TEMPLATE = 'rooms/only_now.html'
+
+# The template for the standalone login form
+RES_LOGIN_TEMPLATE = 'login/login.html'
+
+# The temporary URL to the modified VuFind driver.pl file on the biblio server:
+RES_BARCODE_URL = 'http://biblio.ern.nps.edu/vufind/?query=checkBarcode&patronId='
+#NOTE: this will eventually be replaced with SIP2 auth.
+
 # Prevent users from requesting reservations that occur in the past?
 RES_ENFORCE_NO_PAST = True
 
@@ -8,7 +18,8 @@ RES_ENFORCE_NO_PAST = True
 # statistics and for blocking off rooms to prevent bookings on holidays or
 # other days when the rooms are unavailable (under construction for example)
 # NOTE: any value of -1 will be blocked off on the calender and shown in the
-# legend and on the calendar with the "closed" styles...
+# legend and on the calendar with the "closed" styles and a value of 1 will
+# represent a normal reservation. No other values are used internally.
 RES_TYPE_CHOICES = (
 	(1, 'Normal'),
 	(-1, 'Closed'),

@@ -12,30 +12,78 @@
 	padding: 0.2em;
 }
 
+#login, #logout {
+	margin: 2em 0 1em 0;
+}
+
 .available {
 	background-color: #0C0;
-	color: #EEE;
+	color: #FFF;
 }
 
 .occupied {
 	background-color: #C00;
-	color: #EEE;
 }
 
 .closed {
 	background-color: #333;
-	color: #EEE;
 }
 
-#main_col table {
-	width: 100%;
-	margin: 0;
+.res_left_axis, .room_list {
+	width: 5em;
+	padding: 0;
+	float: left;
+	margin: 0 0.2em;
+	list-style: none;
 }
 
-#main_col th {
+.res_left_axis li, .room_list li {
+	margin: 0.3em 0;
+	text-align: right; /* prevent accidental selecting */
+}
+
+.room_list {
+	text-align: center;
+}
+
+.header {
+	font-weight: bold;
+	text-align: center !important;
+}
+
+/* must appear below .header for alignment to work */
+.res_left_axis li {
+	text-align: right !important;
+}
+
+.ui-selecting {
+	background-color: #9F9;
+}
+.ui-selected {
+	background-color: #060;
+}
+
+.tip {
+	margin: 1em auto;
 	font-size: small;
 }
+.tip .available {
+	padding: 0.1em;
+}
 
-.res_left_axis {
-	width: 5em;
+#confirmation {
+	display: none;
+}
+
+#conf_room, #conf_begin, #conf_end, #conf_date {
+	font-weight: bold;
+}
+
+#login_form {
+	font-size: medium;
+}
+
+.ui-button {
+	border-radius: 4px;
+	padding: 5px;
 }

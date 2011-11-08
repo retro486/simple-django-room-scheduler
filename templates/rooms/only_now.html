@@ -1,0 +1,159 @@
+{% extends "main.html" %}
+{% block extra_head %}
+<!-- stylesheets and js libraries here -->
+<link rel="stylesheet" type="text/css" media="screen" href="{{ MEDIA_URL }}/jquery-ui/css/redmond/jquery-ui-1.8.16.custom.css" />
+<link rel="stylesheet" type="text/css" media="screen" href="{{ MEDIA_URL }}/rooms/default.css" />
+<script type="text/javascript" src="{{ MEDIA_URL }}/jquery-ui/js/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}/jquery-ui/js/jquery-ui-1.8.16.custom.min.js"></script>
+{% endblock %}
+
+{% block side_col %}
+<table>
+	<tr><th colspan="2">Legend</th></tr> 
+	<tr><td class="available">&nbsp;</td><td>Available</td></tr>
+	<tr><td class="occupied">&nbsp;</td><td>Occupied</td></tr>
+	<tr><td class="closed">&nbsp;</td><td>Closed</td></tr>
+</table>
+{% if not email %}
+<div id="login" class="ui-state-default ui-button">Log in</div>
+<div id="login_form" style="display: none;">
+	<form method="post" action="/login/">
+	{% csrf_token %}
+	{{ login_form }}
+	</form>
+</div>
+{% else %}
+<div id="logout" class="ui-state-default ui-button"><a href="/logout/">Log out</a></div>
+{% endif %}
+{% endblock %}
+
+{% block main_col %}
+<h2>Current Availability</h2>
+{% if res.rooms|length = 0 or res.times|length = 0 %}
+<p>No rooms have been added yet. Please finish configuring this application in the administrative back-end.</p>
+{% else %}
+{% if email %}
+<div class="tip">Click and drag in the slots marked as <span class="available">available</span> below to reserve a room.</div>
+<!-- hidden by default and shown only when selecting a time range -->
+<div id="confirmation">
+	<div>Do you want to book room <span id="conf_room"></span> from <span id="conf_begin"></span> to
+		<span id="conf_end"></span> <span id="conf_date">today</span>?</div>
+</div>
+{% endif %}
+<ul class="res_left_axis">
+	<li>&nbsp;</li>
+	{% for time in times %}
+		<li class="header">{{ time }}</li>
+	{% endfor %}
+</ul>
+	
+{% for room in rooms %}
+<ul class="room_list">
+	{% for e in room %}
+		{% if room|first = e %}
+		<li class="header">{{ e }}</li>
+		{% else %}
+		<li class="{% if e.0 = -1 %}closed{% else %}{% if e.0 = 1 %}occupied{% else %}available{% endif %}{% endif %}{% if e.1 %} editable{% endif %} room_{{ e.2 }}">&nbsp;</li>
+		{% endif %}
+	{% endfor %}
+</ul>
+{% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block footer %}
+<!-- js init calls here -->
+<script type="text/javascript">
+$(document).ready(function() {
+
+$('#login_form').dialog({
+	autoOpen: false,
+	closeOnEscape: true,
+	draggable: false,
+	modal: true,
+	resizable: false,
+	title: 'Log in',
+	buttons: {
+		'Log in': function() {
+			return true; // passes control on to the form
+		},
+		'Cancel': function() {
+			$(this).dialog('close');
+		}
+	},
+});
+
+$('#login').click(function() {
+	$('#login_form').dialog('open');
+	$('#id_barcode').focus();
+});
+
+{% if email %}
+$('#confirmation').dialog({
+	autoOpen: false,
+	closeOnEscape: true,
+	draggable: true,
+	modal: true,
+	title: 'Request Reservation?',
+	resizable: false,
+	buttons: {
+		'Yes': function() {
+			// TODO submit via AJAX
+		},
+		'No': function() {
+			$(this).dialog('close');
+		}
+	},
+});
+
+$('.editable').each(function (index) {
+	// disable text selection to prevent problems in selecting ranges
+	$(this).attr('unselectable', 'on')
+		.css({
+			'-moz-user-select': 'none',
+			'-webkit-user-select': 'none',
+			'user-select': 'none',
+		});
+	this.onselectstart = function() { return false; };
+	
+	
+	$(this).click(function() {
+		$('.room_list').each( function(index) {
+			$(this).selectable({
+				// deselect any other selections first; helps prevent booking multiple rooms at a time
+				start: function() {
+					$('.ui-selected').each(function (index) {
+						$(this).removeClass('ui-selected');
+					});
+				},
+				stop: function() {
+					if ($('.ui-selected', this).first().html() != "&nbsp;") {
+						$('.ui-selected', this).first().removeClass('ui-selected');
+					}
+					
+					var selected = $('.ui-selected', this);
+					if (selected.length > 9) {
+						alert('You may only select up to a 4 hour chunk.');
+						for (i=9; i<selected.length; i++) {
+							$(selected[i]).removeClass('ui-selected');
+						}
+					} else if (selected.length == 1) {
+						alert('Please click and drag down to select more than one slot.');
+						$(selected).removeClass('ui-selected');
+					} else {
+						// no problems, so now present the dialog for reserving
+						// position the dialog above the last selected element
+						$('#conf_room').html( $(this).parent().children().first().html() );
+						$('#conf_begin').html( $('.ui-selected', this).first().html() );
+						$('#conf_end').html( $('.ui-selected', this).last().html() );
+						$('#confirmation').dialog('open');
+					}
+				},
+			});
+		});
+	});
+});
+{% endif %}
+});
+</script>
+{% endblock %}
