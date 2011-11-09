@@ -14,17 +14,19 @@
 	<tr><td class="occupied">&nbsp;</td><td>Occupied</td></tr>
 	<tr><td class="closed">&nbsp;</td><td>Closed</td></tr>
 </table>
-{% if not email %}
-<div id="login" class="ui-state-default ui-button">Log in</div>
+<div id="checkin" class="ui-state-default ui-button">Return a Key</div>
+<div id="bookroom" class="ui-state-default ui-button">Book a Room</div>
 <div id="login_form" style="display: none;">
-	<form method="post" action="/login/">
-	{% csrf_token %}
-	{{ login_form }}
-	</form>
+	<input type="text" id="id_barcode" />
 </div>
-{% else %}
-<div id="logout" class="ui-state-default ui-button"><a href="/logout/">Log out</a></div>
-{% endif %}
+<div id="scan_key_form" style="display: none;">
+	<input type="text" id="id_keybarcode" />
+</div>
+<div id="select_time_form" style="display: none;">
+	TODO
+</div>
+<div id="error_dialog" style="display: none;">
+</div>
 {% endblock %}
 
 {% block main_col %}
@@ -64,7 +66,25 @@
 {% block footer %}
 <!-- js init calls here -->
 <script type="text/javascript">
+// globals
+var email = '';
+var room = '';
+
 $(document).ready(function() {
+
+$('#error_dialog').dialog({
+	autoOpen: false,
+	closeOnEscape: true,
+	draggable: false,
+	modal: true,
+	resizable: false,
+	title: 'An Error Occured',
+	buttons: {
+		'Close': function() {
+			$(this).dialog('close');
+		}
+	},
+});
 
 $('#login_form').dialog({
 	autoOpen: false,
@@ -72,10 +92,66 @@ $('#login_form').dialog({
 	draggable: false,
 	modal: true,
 	resizable: false,
-	title: 'Log in',
+	title: 'Scan Library Card Now...',
 	buttons: {
-		'Log in': function() {
-			return true; // passes control on to the form
+		'Next': function() {
+			$(this).dialog('close');
+			$.getJSON('/ajax_login/?barcode=' + $('#id_barcode').attr('value'),
+				function(data) {
+					if (data['auth']) {
+						email = data['message'];
+						$('#id_keybarcode').attr('value',''); // gets prepopulated for some reason
+						$('#scan_key_form').dialog('open');
+						$('#id_keybarcode').focus();
+					} else {
+						$('#id_barcode').attr('value',''); // reset barcode input box
+						$('#error_dialog').html(data['error']);
+						$('#error_dialog').dialog('open');
+					}
+				}
+			);
+		},
+		'Cancel': function() {
+			$(this).dialog('close');
+			$('#id_barcode').attr('value','');
+		}
+	},
+});
+
+$('#scan_key_form').dialog({
+	autoOpen: false,
+	closeOnEscape: true,
+	draggable: false,
+	modal: true,
+	resizable: false,
+	title: 'Scan Key Now...',
+	buttons: {
+		'Next': function() {
+			$(this).dialog('close');
+			// TODO check key barcode, if error show error message then this dialog again,
+			// if key is checked out, check it back in then out again,
+			// otherwise check key out and then...
+			$('#select_time_form').dialog('open');
+		},
+		'Cancel': function() {
+			$(this).dialog('close');
+			$('#id_keybarcode').attr('value','');
+		}
+	},
+});
+
+$('#select_time_form').dialog({
+	autoOpen: false,
+	closeOnEscape: true,
+	draggable: false,
+	modal: true,
+	resizable: false,
+	title: 'Select Length of Time',
+	buttons: {
+		'Submit': function() {
+			// TODO check key barcode, if error show error message then this dialog again,
+			// if key is checked out, check it back in then out again,
+			// otherwise check key out and then...
 		},
 		'Cancel': function() {
 			$(this).dialog('close');
@@ -83,8 +159,8 @@ $('#login_form').dialog({
 	},
 });
 
-$('#login').click(function() {
-	$('#login_form').dialog('open');
+$('#bookroom').click(function() {
+	var ret = $('#login_form').dialog('open');
 	$('#id_barcode').focus();
 });
 

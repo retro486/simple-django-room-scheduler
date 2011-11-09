@@ -155,5 +155,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin', # for manual mgmt of data
+	'south',
     'rooms',
+	'roomkeys',
 )

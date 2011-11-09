@@ -12,8 +12,8 @@
 	padding: 0.2em;
 }
 
-#login, #logout {
-	margin: 2em 0 1em 0;
+#login, #logout, #checkin {
+	margin: 1em 1em 1em 0;
 }
 
 .available {
