@@ -12,6 +12,8 @@ def get_room(barcode):
 	try:
 		result = RoomKey.objects.get(barcode=barcode)
 		ret['room'] = result.room.name
+		_ = checkin(ret['room'].barcode) # check in the room, throwing out the result
+		
 	except Exception as ex:
 		ret['error'] = 'Invalid room key barcode or that room key isn\'t in the system. Please contact the circulation desk.'
 		

@@ -1,5 +1,4 @@
 from rooms.models import NPSUser
-from sip2talk import auth_card
 from django.http import HttpResponseRedirect,HttpResponse
 import sys
 from django.template import RequestContext

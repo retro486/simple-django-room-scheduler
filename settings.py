@@ -8,7 +8,8 @@ RES_DEFAULT_TEMPLATE = 'rooms/only_now.html'
 RES_LOGIN_TEMPLATE = 'login/login.html'
 
 # The temporary URL to the modified VuFind driver.pl file on the biblio server:
-RES_BARCODE_URL = 'http://biblio.ern.nps.edu/vufind/?query=checkBarcode&patronId='
+#RES_BARCODE_URL = 'http://biblio.ern.nps.edu/vufind/?query=checkBarcode&patronId='
+RES_BARCODE_URL = 'http://localhost/barcode.html?'
 #NOTE: this will eventually be replaced with SIP2 auth.
 
 # Prevent users from requesting reservations that occur in the past?
@@ -103,12 +104,13 @@ USE_L10N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/home/rgbernha/dklstudy/static/'
+MEDIA_ROOT = '/var/www/html/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = 'http://172.20.113.114:8008/media'
+#MEDIA_URL = 'http://172.20.113.114:8008/media'
+MEDIA_URL = 'http://localhost/media/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -139,7 +141,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    '/home/rgbernha/dklstudy/studyrooms/templates'
+    '/home/russ/repos/studyrooms/templates'
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (

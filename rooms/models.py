@@ -6,7 +6,7 @@ from django.db.models.signals import pre_delete
 
 class NPSUser(models.Model):
 	email = models.CharField(max_length=255, unique=True)
-	balance = models.DecimalField(default=0.0,
+	balance = models.DecimalField(default='0.0',
 		max_digits=len(str(settings.RES_DAILY_QUOTA)),
 		decimal_places=2, # doesn't need to be super-accurate and really should be in 
 						# increments of settings.RES_INTERVAL
@@ -71,8 +71,8 @@ class Reservation(models.Model):
 			# reset the user's quota if they haven't booked any rooms today
 			if self.requested_user.date_last_booking < datetime.now().date():
 				self.requested_user.date_last_booking = datetime.now().date()
-				self.requested_user.balance = 0.00
-				balance = 0.00
+				self.requested_user.balance = '0.0'
+				balance = 0.0
 			
 			elif balance > settings.RES_DAILY_QUOTA: 
 				raise ValidationError(u'You have met your daily reservation quota. Please share with another student or return tomorrow. Quotas are reset every day.')
@@ -125,6 +125,7 @@ class Reservation(models.Model):
 				value -= refund
 	
 			self.requested_user.balance = str(value) # has to do with how Decimal hates float :'(
+			self.requested_user.clean()
 			self.requested_user.save() # update the user object
 
 		return # model passes validation

@@ -14,6 +14,7 @@
 	<tr><td class="occupied">&nbsp;</td><td>Occupied</td></tr>
 	<tr><td class="closed">&nbsp;</td><td>Closed</td></tr>
 </table>
+<br />
 <div id="checkin">Return a Key</div>
 <div id="bookroom">Book a Room</div>
 <div id="login_form" style="display: none;">
@@ -211,6 +212,15 @@ $('#select_time_form').dialog({
 				function(data) {
 					if (data['success']) {
 						$('#select_time_form').dialog('close');
+						$('#error_dialog').dialog({
+							title: 'Reservation Complete',
+							buttons: {
+								'OK': function() {
+									$(this).dialog('close');
+									window.location.reload();
+								}
+							}
+						});
 						$('#error_dialog').html('Your reservation for ... was successful. You may now proceed to your room.');
 						$('#error_dialog').dialog('open');
 					} else {

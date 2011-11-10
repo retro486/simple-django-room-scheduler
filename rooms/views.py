@@ -8,6 +8,7 @@ from roomkeys.models import RoomKey
 from django.conf import settings
 from django.http import HttpResponseRedirect,HttpResponse
 import json
+from django.core.exceptions import ValidationError
 
 def default_view(request):
 	dt_start = datetime.now()
@@ -102,12 +103,16 @@ def reserve(email,roombc,datetime_start,datetime_end):
 		user.date_last_booking = datetime.now()
 		
 	try:
-		roombc = RoomKey.objects.get(barcode=roombc)
-		room = roombc.room
+		roomkey = RoomKey.objects.get(barcode=roombc)
+		room = roomkey.room
 	except:
 		ret['error'] = 'That room doesn\'t appear to exist. Please select another room.'
 		return ret
-		
+
+    # don't capture this if it errors because that means a core problem exists
+    # that should be fixed.	
+   	user.save()
+	
 	res = Reservation()
 	res.requested_user = user
 	res.room = room
@@ -115,11 +120,24 @@ def reserve(email,roombc,datetime_start,datetime_end):
 	res.datetime_end = datetime_end
 	
 	try:
-		user.save()
-		res.save()
-	except Exception as ex:
-		ret['error'] = str(ex)
+		res.clean() # not called automatically without a form
+	except ValidationError as ve:
+		# failure to clean, only validation errors are raised
+		if len(ve.messages) > 1:
+			for msg in ve.messages:
+				ret['error'] += msg + '<br />'
+		else:
+			ret['error'] = ve.messages[0]
+			
 		return ret
+	
+	# again, if an exception occurs by now, it's likely a bug.		
+	res.save()
+	
+	rku = RoomKeyUsage()
+	rku.roomkey = roomkey
+	rku.datetime_checkout = datetime.now()
+	rku.save()
 		
 	ret['success'] = True
 	return ret
@@ -139,7 +157,7 @@ def ajax_reserve(request):
 		datetime_start = start - timedelta(minutes=(start.minute % settings.RES_MIN_LENGTH),
 			seconds=start.second,
 			microseconds=start.microsecond)
-		datetime_end = start + timedelta(minutes=minutes)
+		datetime_end = datetime_start + timedelta(minutes=minutes)
 		
 		ret = reserve(email, roombc, datetime_start, datetime_end)
 		
