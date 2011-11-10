@@ -57,6 +57,20 @@ class Reservation(models.Model):
 		is_admin = self.requested_user.email in settings.RES_ADMINS
 		hours = float((self.datetime_end - self.datetime_start).seconds) / (60.00*60.00)
 
+		if settings.RES_ENFORCE_OAAT:
+			try:
+				res = Reservation.objects.get(requested_user=self.requested_user,
+					datetime_start__lte=datetime.now(),
+					datetime_end__gte=datetime.now())
+				# if no exception at this point, user already has a reservation right now
+				raise ValidationError(u'You already have a reservation in progress. Please return the key for the current reservation before requested another one.')
+			
+			except ValidationError as v:
+				raise v
+			except Exception as ex:
+				pass
+				 # nothing wrong
+		
 		# make sure user didn't "accidentally" swap start/end datetimes
 		if self.datetime_start >= self.datetime_end:
 			raise ValidationError(u'The selected start and end dates/times do not make sense.')
@@ -85,9 +99,9 @@ class Reservation(models.Model):
 		refund = 0.00
 		try:
 			r = Reservation.objects.get(pk=self.pk)
-			refund = float((r.datetime_end - r.datetime_start).minutes / (60.00*60.00))
+			refund = float((r.datetime_end - datetime.now()).minutes / (60.00*60.00))
 		except:
-			pass # this is NOT a modification or reschedule
+			pass # this is NOT a modification or reschedule because this reservation doesn't exist
 
 		if settings.RES_ENFORCE_MAX_NUM and not is_admin and len(Reservation.objects.filter(
 		  requested_user=self.requested_user,

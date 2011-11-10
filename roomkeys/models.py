@@ -9,9 +9,3 @@ class RoomKey(models.Model):
 	
 	def __str__(self):
 		return self.room.name
-
-class RoomKeyUsage(models.Model):
-	roomkey = models.ForeignKey(RoomKey)
-	datetime_checkout = models.DateTimeField()
-	datetime_checkin = models.DateTimeField(blank=True,null=True) # aids in the detection of incomplete sessions
-	

@@ -1,66 +1,79 @@
+import json
+from datetime import datetime,timedelta,date
+
 from django.template import RequestContext
 from django.core.context_processors import csrf
-from res_auth.forms import LoginForm
 from django.shortcuts import render_to_response
-from datetime import datetime,timedelta
-from models import Reservation,Room,NPSUser
-from roomkeys.models import RoomKey
 from django.conf import settings
 from django.http import HttpResponseRedirect,HttpResponse
-import json
 from django.core.exceptions import ValidationError
+from django.db.models import Q
+
+from res_auth.forms import LoginForm
+from roomkeys.models import RoomKey
+from models import Reservation,Room,NPSUser
+
 
 def default_view(request):
 	dt_start = datetime.now()
-	fix1 = timedelta(minutes=dt_start.minute % settings.RES_MIN_LENGTH, seconds=dt_start.second,
+	time_fix = timedelta(minutes=dt_start.minute % settings.RES_MIN_LENGTH, seconds=dt_start.second,
 	  microseconds=dt_start.microsecond) # zero out seconds
-	dt_start -= fix1 # round down to nearest increment of 15 minutes
-
+	dt_start = dt_start - time_fix
+	today = datetime.fromordinal(date.today().toordinal())
+	
+	floor = dt_start - timedelta(minutes=settings.RES_MIN_LENGTH)
+	ceiling = dt_start + timedelta(hours=(settings.RES_LOOK_AHEAD_HOURS + 0.5))
+	
 	email = request.session.get('email', False)
 	
 	times = []
 	rooms = []
 
 	if settings.RES_SWAP_AXIS:
-		# this bit is confusing because of naming; TODO change naming to be less confusing.
-		for i in range(0,17):
+		# generate time labels
+		for i in range(0,((settings.RES_LOOK_AHEAD_HOURS + 0.5) * 60 / settings.RES_MIN_LENGTH)):
 			t = dt_start + timedelta(minutes=i*settings.RES_MIN_LENGTH)
 			times.append(':'.join(t.time().isoformat().split(':')[0:2]))
 		
+		# generate room reservation list
 		for room in Room.objects.all():
 			rooms.append([])
 			rooms[-1].append(room.name)
 			
-			for i in range(0,len(times)):
-				dts = dt_start + timedelta(minutes=(settings.RES_MIN_LENGTH*i)) 
-				try:
-					cur = Reservation.objects.get(
-						room=room,
-						datetime_start__lte=dts,
-						datetime_end__gte=dts,
-					)
-				except:
-					cur = None
+			for time in times:
+				(hour,minute) = time.split(':')
+				adj = today + timedelta(hours=int(hour),minutes=int(minute))
+				prev = adj - timedelta(minutes=settings.RES_MIN_LENGTH)
+				next = adj + timedelta(minutes=settings.RES_MIN_LENGTH)
+				cur = Reservation.objects.filter(
+					Q(room=room),
+					(Q(datetime_start__gte=prev) & Q(datetime_start__lte=next)) | Q(datetime_end__gte=prev),
+				)
 
-				if cur is None:
+				if len(cur) == 0:
 					rooms[-1].append((0,True,room.pk))
 				else:
 					if email and cur.requested_user.email == email:
 						editable = True
 					else:
 						editable = False
-					rooms[-1].append((cur.type,editable,room.pk))
+					rooms[-1].append((cur[0].type,editable,room.pk))
 
 	else:
+		# slightly different arrangement of the rooms list when labels are swapped.
+		
+		# generate time labels
 		for i in range(0,17):
 			t = dt_start + timedelta(minutes=i*settings.RES_MIN_LENGTH)
 			times.append(':'.join(t.time().isoformat().split(':')[0:2]))
 
+		# generate the usage table. note it checks bounds based on RES_MIN_LENGTH sized
+		# blocks of time.
 		for room in Room.objects.all():
 			r = []
 			r.append(room.name)
 
-			for i in range(0,17):
+			for i in range(0,len(times)):
 				try:
 					cur = Reservation.objects.get(
 					  room=room,
@@ -119,6 +132,10 @@ def reserve(email,roombc,datetime_start,datetime_end):
 	res.datetime_start = datetime_start
 	res.datetime_end = datetime_end
 	
+	# TODO: do a return_key on the roomkey barcode. This is to prevent early returns
+	# of keys and semi-correction of reservation end datetimes.
+	_ = return_key(roombc)
+	
 	try:
 		res.clean() # not called automatically without a form
 	except ValidationError as ve:
@@ -134,11 +151,6 @@ def reserve(email,roombc,datetime_start,datetime_end):
 	# again, if an exception occurs by now, it's likely a bug.		
 	res.save()
 	
-	rku = RoomKeyUsage()
-	rku.roomkey = roomkey
-	rku.datetime_checkout = datetime.now()
-	rku.save()
-		
 	ret['success'] = True
 	return ret
 	
@@ -153,12 +165,66 @@ def ajax_reserve(request):
 		roombc = request.GET.get('barcode','0')
 		minutes = int(request.GET.get('minutes','0'))
 		
-		start = datetime.now()
-		datetime_start = start - timedelta(minutes=(start.minute % settings.RES_MIN_LENGTH),
-			seconds=start.second,
-			microseconds=start.microsecond)
+		# turns out it's okay to track actual datetime reserved.
+		datetime_start = datetime.now()
 		datetime_end = datetime_start + timedelta(minutes=minutes)
 		
 		ret = reserve(email, roombc, datetime_start, datetime_end)
+		
+	return HttpResponse(json.dumps(ret))
+	
+'''
+Given a key's barcode, the reservation associated with the key is looked up and the
+datetime_end is set to datetime.now().
+'''
+def return_key(barcode):
+	ret = {
+		'success': False,
+		'error': '',
+	}
+	
+	try:
+		room = Room.objects.get(pk=RoomKey.objects.get(barcode=barcode).pk)
+		
+	except Exception as ex:
+		ret['error'] = str(ex)
+		ret['success'] = False
+		return ret
+		
+	# find the latest entry for this room for today (prevent accidental return)
+	today = datetime.now()
+	# look only at the date
+	today -= timedelta(hours=today.hour,minutes=today.minute,seconds=today.second,microseconds=today.microsecond)
+	tomorrow = today + timedelta(hours=24)
+	res = Reservation.objects.filter(
+		room=room,
+		datetime_start__gte=today,
+		datetime_end__lte=tomorrow,
+		type=1 # not closed
+	).order_by('datetime_start')
+	
+	if len(res) > 0:
+		item = res[0] # get latest reservation
+	
+		# set the end datetime to now since we're checking the room key in now.
+		# this not only aids in correcting early checkins, but late checkins as well.
+		item.datetime_end = datetime.now()
+		# don't bother cleaning since this reservation can't possibly conflict with
+		# anything else since we're either returning early or returning in the process
+		# of creating another reservation which won't check times until after this 
+		# correction is saved...
+		item.save()
+	
+	ret['success'] = True
+	return ret
+	
+def ajax_return_key(request):
+	ret = {
+		'success': False,
+		'error': '',
+	}
+	
+	if request.method == 'GET':
+		ret = return_key( request.GET.get('barcode', '0') )
 		
 	return HttpResponse(json.dumps(ret))

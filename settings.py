@@ -1,6 +1,9 @@
 #################################
 # Custom settings for rooms app
 
+# The number of hours to look ahead on the front page
+RES_LOOK_AHEAD_HOURS = 6
+
 # The default template to use for the front page
 RES_DEFAULT_TEMPLATE = 'rooms/only_now.html'
 
@@ -8,8 +11,8 @@ RES_DEFAULT_TEMPLATE = 'rooms/only_now.html'
 RES_LOGIN_TEMPLATE = 'login/login.html'
 
 # The temporary URL to the modified VuFind driver.pl file on the biblio server:
-#RES_BARCODE_URL = 'http://biblio.ern.nps.edu/vufind/?query=checkBarcode&patronId='
-RES_BARCODE_URL = 'http://localhost/barcode.html?'
+RES_BARCODE_URL = 'http://biblio.ern.nps.edu/vufind/?query=checkBarcode&patronId='
+#RES_BARCODE_URL = 'http://localhost/barcode.html?'
 #NOTE: this will eventually be replaced with SIP2 auth.
 
 # Prevent users from requesting reservations that occur in the past?
@@ -27,19 +30,23 @@ RES_TYPE_CHOICES = (
 )
 
 # User quotas: enable them and if so, how many hours PER DAY to users get?
-RES_ENFORCE_DAILY_QUOTA = True
+RES_ENFORCE_DAILY_QUOTA = False
 RES_DAILY_QUOTA = 4.00 # decimal value in hours, regardless of room selection
 #NOTE: not sure how this would affect the DB if you change the format, i.e., xx.x or x.xxx or xxx.x etc.
 
 # Allow refunds of quota time if users cancel meetings within the set threshold. Only applies if
-# ENFORCE_DAILY_QUOTA is True.
+# ENFORCE_DAILY_QUOTA is True. Partial refunds are issued when someone turns in their key early.
 RES_ALLOW_REFUNDS = True
-RES_REFUND_THRESHOLD = 10 # minutes BEFORE the meeting STARTS
+RES_REFUND_THRESHOLD = 10 # minutes BEFORE the meeting STARTS, 0 means at any time up to the start of the reservation.
 
 # More user quotas: enable maximum # of reservations (independent of max # of hours per day) and how
 # many reservations per day (TOTAL, regardless of room selection) do users get?
 RES_ENFORCE_MAX_NUM = True
 RES_MAX_NUM = 3 # users get up to 3 reservations per day, regardless of room selection
+
+# Enfore allowing users to only be able to have a single reservation for any room
+# at any given time.
+RES_ENFORCE_OAAT = True
 
 # Enforce a minimum time on meetings and if so what amount of time is minimal
 # Helps prevent blocking off many small amounts of time. Can be used independent
@@ -61,6 +68,24 @@ RES_ADMINS = ('libsys@nps.edu',)
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+
+# Absolute path to the directory that holds media.
+# Example: "/home/media/media.lawrence.com/"
+MEDIA_ROOT = '/var/www/html/'
+
+# URL that handles the media served from MEDIA_ROOT. Make sure to use a
+# trailing slash if there is a path component (optional in other cases).
+# Examples: "http://media.lawrence.com", "http://example.com/media/"
+MEDIA_URL = 'http://172.20.113.114:8008/media'
+#MEDIA_URL = 'http://localhost/media/'
+
+TEMPLATE_DIRS = (
+    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    #'/home/russ/repos/studyrooms/templates',
+	'/usr/local/dklstudy/studyrooms/templates',
+)
 
 ADMINS = (
     ('Russell Bernhardt', 'rgbernha@nps.edu'),
@@ -102,16 +127,6 @@ USE_I18N = True
 # calendars according to the current locale
 USE_L10N = True
 
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/var/www/html/'
-
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash if there is a path component (optional in other cases).
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
-#MEDIA_URL = 'http://172.20.113.114:8008/media'
-MEDIA_URL = 'http://localhost/media/'
-
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
@@ -136,13 +151,6 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'studyrooms.urls'
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    '/home/russ/repos/studyrooms/templates'
-)
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',

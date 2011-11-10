@@ -84,6 +84,7 @@ $('#error_dialog').dialog({
 	title: 'An Error Occured',
 	buttons: {
 		'Close': function() {
+			$(this).dialog({title: 'An Error Occured',}); // override back to default
 			$(this).dialog('close');
 			$('#id_keybarcode').focus();
 		}
@@ -179,11 +180,19 @@ $('#scan_key_form').dialog({
 				$.getJSON('/ajax_roomkey_checkin/?barcode=' + $('#id_keybarcode').attr('value'),
 					function(data) {
 						$('#id_keybarcode').attr('value','');
-						if (data['error'].length > 0) {
-							$('#error_dialog').html(data['error']);
+						if (data['success']) {
+							$('#error_dialog').dialog({title: 'Thank You',
+								buttons: {
+									'OK': function() {
+										$(this).dialog('close');
+										window.location.reload();
+									}
+								},
+							});
+							$('#error_dialog').html('Your key has been returned. Thank you.');
 							$('#error_dialog').dialog('open');
 						} else {
-							$('#error_dialog').html('Your key has been returned. Thank you.');
+							$('#error_dialog').html(data['error']);
 							$('#error_dialog').dialog('open');
 						}
 					}
@@ -251,6 +260,8 @@ $('#checkin').button()
 		$('#id_keybarcode').focus();
 	})
 ;
+
+// TODO every 15 minutes refresh this page
 });
 </script>
 {% endblock %}

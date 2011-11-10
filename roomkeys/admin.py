@@ -1,5 +1,4 @@
 from django.contrib import admin
-from models import RoomKey, RoomKeyUsage
+from models import RoomKey
 
 admin.site.register(RoomKey)
-admin.site.register(RoomKeyUsage)
