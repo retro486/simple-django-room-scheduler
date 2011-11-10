@@ -14,8 +14,8 @@
 	<tr><td class="occupied">&nbsp;</td><td>Occupied</td></tr>
 	<tr><td class="closed">&nbsp;</td><td>Closed</td></tr>
 </table>
-<div id="checkin" class="ui-state-default ui-button">Return a Key</div>
-<div id="bookroom" class="ui-state-default ui-button">Book a Room</div>
+<div id="checkin">Return a Key</div>
+<div id="bookroom">Book a Room</div>
 <div id="login_form" style="display: none;">
 	<input type="text" id="id_barcode" />
 </div>
@@ -23,7 +23,8 @@
 	<input type="text" id="id_keybarcode" />
 </div>
 <div id="select_time_form" style="display: none;">
-	TODO
+	<div id="time">30 minutes</div>
+	<div id="time_slider"></div>
 </div>
 <div id="error_dialog" style="display: none;">
 </div>
@@ -68,7 +69,8 @@
 <script type="text/javascript">
 // globals
 var email = '';
-var room = '';
+var barcode = '';
+var key_mode = 'checkout'; // checkout == normal process; return == only return.
 
 $(document).ready(function() {
 
@@ -82,9 +84,40 @@ $('#error_dialog').dialog({
 	buttons: {
 		'Close': function() {
 			$(this).dialog('close');
+			$('#id_keybarcode').focus();
 		}
 	},
 });
+
+$('#time_slider').slider({
+	// all values in minutes
+	value: 30,
+	min: 30,
+	max: (30 * 2 * 4), // 4 hours
+	step: 30, // 30 minute increments
+	slide: function(event,ui) {
+		var minutes = ui.value % 60; // get left over minutes
+		var hours = Math.round( (ui.value - minutes) / 60); // get hours
+		var report = '';
+		
+		mins = '';
+		hrs = '';
+		if (minutes > 0) {
+			mins = minutes + ' minutes';
+		}
+		if (hours > 0) {
+			hrs = hours + ' hour';
+			if (hours > 1) { hrs += 's'; }
+			report = hrs;
+		}
+		if (mins.length > 0) {
+			if (report.length > 0) { report += ' and '; }
+			report += mins;
+		}
+		
+		$('#time').html(report);
+	},
+}); // value can be obtained by $('#time_slider').slider('value')
 
 $('#login_form').dialog({
 	autoOpen: false,
@@ -98,13 +131,12 @@ $('#login_form').dialog({
 			$(this).dialog('close');
 			$.getJSON('/ajax_login/?barcode=' + $('#id_barcode').attr('value'),
 				function(data) {
+					$('#id_barcode').attr('value',''); // reset barcode input box
 					if (data['auth']) {
 						email = data['message'];
-						$('#id_keybarcode').attr('value',''); // gets prepopulated for some reason
 						$('#scan_key_form').dialog('open');
 						$('#id_keybarcode').focus();
 					} else {
-						$('#id_barcode').attr('value',''); // reset barcode input box
 						$('#error_dialog').html(data['error']);
 						$('#error_dialog').dialog('open');
 					}
@@ -128,10 +160,34 @@ $('#scan_key_form').dialog({
 	buttons: {
 		'Next': function() {
 			$(this).dialog('close');
-			// TODO check key barcode, if error show error message then this dialog again,
-			// if key is checked out, check it back in then out again,
-			// otherwise check key out and then...
-			$('#select_time_form').dialog('open');
+			if (key_mode == 'checkout') {
+				$.getJSON('/ajax_roomkey/?barcode=' + $('#id_keybarcode').attr('value'),
+					function(data) {
+						barcode = $('#id_keybarcode').attr('value');
+						$('#id_keybarcode').attr('value','');
+						if (data['error'].length > 0) {
+							$('#error_dialog').html(data['error']);
+							$('#scan_key_form').dialog('open'); // try again
+							$('#error_dialog').dialog('open');
+						} else {
+							$('#select_time_form').dialog('open');
+						}
+					}
+				);
+			} else if (key_mode == 'return') {
+				$.getJSON('/ajax_roomkey_checkin/?barcode=' + $('#id_keybarcode').attr('value'),
+					function(data) {
+						$('#id_keybarcode').attr('value','');
+						if (data['error'].length > 0) {
+							$('#error_dialog').html(data['error']);
+							$('#error_dialog').dialog('open');
+						} else {
+							$('#error_dialog').html('Your key has been returned. Thank you.');
+							$('#error_dialog').dialog('open');
+						}
+					}
+				);
+			}
 		},
 		'Cancel': function() {
 			$(this).dialog('close');
@@ -149,9 +205,20 @@ $('#select_time_form').dialog({
 	title: 'Select Length of Time',
 	buttons: {
 		'Submit': function() {
-			// TODO check key barcode, if error show error message then this dialog again,
-			// if key is checked out, check it back in then out again,
-			// otherwise check key out and then...
+			// push the requested minutes, email address, and room to the server
+			$.getJSON('/ajax_reserve/?email=' + email + '&barcode=' + barcode
+				+ '&minutes=' + $('#time_slider').slider('value'),
+				function(data) {
+					if (data['success']) {
+						$('#select_time_form').dialog('close');
+						$('#error_dialog').html('Your reservation for ... was successful. You may now proceed to your room.');
+						$('#error_dialog').dialog('open');
+					} else {
+						$('#error_dialog').html(data['error']);
+						$('#error_dialog').dialog('open');
+					}
+				}
+			);
 		},
 		'Cancel': function() {
 			$(this).dialog('close');
@@ -159,77 +226,21 @@ $('#select_time_form').dialog({
 	},
 });
 
-$('#bookroom').click(function() {
-	var ret = $('#login_form').dialog('open');
-	$('#id_barcode').focus();
-});
+$('#bookroom').button()
+	.click(function() {
+		key_mode = 'checkout';
+		$('#login_form').dialog('open');
+		$('#id_barcode').focus();
+	})
+;
 
-{% if email %}
-$('#confirmation').dialog({
-	autoOpen: false,
-	closeOnEscape: true,
-	draggable: true,
-	modal: true,
-	title: 'Request Reservation?',
-	resizable: false,
-	buttons: {
-		'Yes': function() {
-			// TODO submit via AJAX
-		},
-		'No': function() {
-			$(this).dialog('close');
-		}
-	},
-});
-
-$('.editable').each(function (index) {
-	// disable text selection to prevent problems in selecting ranges
-	$(this).attr('unselectable', 'on')
-		.css({
-			'-moz-user-select': 'none',
-			'-webkit-user-select': 'none',
-			'user-select': 'none',
-		});
-	this.onselectstart = function() { return false; };
-	
-	
-	$(this).click(function() {
-		$('.room_list').each( function(index) {
-			$(this).selectable({
-				// deselect any other selections first; helps prevent booking multiple rooms at a time
-				start: function() {
-					$('.ui-selected').each(function (index) {
-						$(this).removeClass('ui-selected');
-					});
-				},
-				stop: function() {
-					if ($('.ui-selected', this).first().html() != "&nbsp;") {
-						$('.ui-selected', this).first().removeClass('ui-selected');
-					}
-					
-					var selected = $('.ui-selected', this);
-					if (selected.length > 9) {
-						alert('You may only select up to a 4 hour chunk.');
-						for (i=9; i<selected.length; i++) {
-							$(selected[i]).removeClass('ui-selected');
-						}
-					} else if (selected.length == 1) {
-						alert('Please click and drag down to select more than one slot.');
-						$(selected).removeClass('ui-selected');
-					} else {
-						// no problems, so now present the dialog for reserving
-						// position the dialog above the last selected element
-						$('#conf_room').html( $(this).parent().children().first().html() );
-						$('#conf_begin').html( $('.ui-selected', this).first().html() );
-						$('#conf_end').html( $('.ui-selected', this).last().html() );
-						$('#confirmation').dialog('open');
-					}
-				},
-			});
-		});
-	});
-});
-{% endif %}
+$('#checkin').button()
+	.click(function() {
+		key_mode = 'return';
+		$('#scan_key_form').dialog('open');
+		$('#id_keybarcode').focus();
+	})
+;
 });
 </script>
 {% endblock %}

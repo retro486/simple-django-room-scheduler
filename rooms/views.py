@@ -3,9 +3,11 @@ from django.core.context_processors import csrf
 from res_auth.forms import LoginForm
 from django.shortcuts import render_to_response
 from datetime import datetime,timedelta
-from models import Reservation,Room
+from models import Reservation,Room,NPSUser
+from roomkeys.models import RoomKey
 from django.conf import settings
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect,HttpResponse
+import json
 
 def default_view(request):
 	dt_start = datetime.now()
@@ -86,5 +88,59 @@ def default_view(request):
 
 	return render_to_response(settings.RES_DEFAULT_TEMPLATE, c)
 
-def create_reservation(request):
-	pass
+def reserve(email,roombc,datetime_start,datetime_end):
+	ret = {
+		'success': False,
+		'error': '',
+	}
+	
+	try:
+		user = NPSUser.objects.get(email=email)
+	except:
+		user = NPSUser()
+		user.email = email
+		user.date_last_booking = datetime.now()
+		
+	try:
+		roombc = RoomKey.objects.get(barcode=roombc)
+		room = roombc.room
+	except:
+		ret['error'] = 'That room doesn\'t appear to exist. Please select another room.'
+		return ret
+		
+	res = Reservation()
+	res.requested_user = user
+	res.room = room
+	res.datetime_start = datetime_start
+	res.datetime_end = datetime_end
+	
+	try:
+		user.save()
+		res.save()
+	except Exception as ex:
+		ret['error'] = str(ex)
+		return ret
+		
+	ret['success'] = True
+	return ret
+	
+def ajax_reserve(request):
+	ret = {
+		'success': False,
+		'error': '',
+	}
+	
+	if request.method == 'GET':
+		email = request.GET.get('email', '0')
+		roombc = request.GET.get('barcode','0')
+		minutes = int(request.GET.get('minutes','0'))
+		
+		start = datetime.now()
+		datetime_start = start - timedelta(minutes=(start.minute % settings.RES_MIN_LENGTH),
+			seconds=start.second,
+			microseconds=start.microsecond)
+		datetime_end = start + timedelta(minutes=minutes)
+		
+		ret = reserve(email, roombc, datetime_start, datetime_end)
+		
+	return HttpResponse(json.dumps(ret))

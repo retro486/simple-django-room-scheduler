@@ -12,8 +12,9 @@
 	padding: 0.2em;
 }
 
-#login, #logout, #checkin {
-	margin: 1em 1em 1em 0;
+#bookroom, #checkin {
+	font-size: 1em;
+	margin: 0.5em;
 }
 
 .available {
@@ -79,11 +80,7 @@
 	font-weight: bold;
 }
 
-#login_form {
-	font-size: medium;
-}
-
-.ui-button {
-	border-radius: 4px;
-	padding: 5px;
+#time {
+	text-align: center;
+	margin: 0.5em;
 }

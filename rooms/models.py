@@ -44,7 +44,7 @@ class Reservation(models.Model):
 	datetime_end = models.DateTimeField()
 	requested_user = models.ForeignKey(NPSUser)
 	room = models.ForeignKey(Room)
-	type = models.PositiveIntegerField(choices=settings.RES_TYPE_CHOICES)
+	type = models.PositiveIntegerField(choices=settings.RES_TYPE_CHOICES, default=1)
 
 	def __str__(self):
 		return self.room.name + ': ' + self.datetime_start.ctime() + ' to ' + self.datetime_end.ctime()
