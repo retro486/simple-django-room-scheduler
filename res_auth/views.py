@@ -3,7 +3,6 @@ from django.http import HttpResponseRedirect,HttpResponse
 import sys
 from django.template import RequestContext
 from django.core.context_processors import csrf
-from forms import LoginForm
 from django.shortcuts import render_to_response
 import urllib2
 from django.conf import settings
@@ -48,46 +47,13 @@ def bare_login(barcode):
 	
 	return ret
 		
-# POST method of login with form
-def login(request):
-	if request.method == 'POST':
-		form = LoginForm(request.POST)
-		
-		if form.is_valid():
-			result = bare_login(form.cleaned_data['barcode'])
-			
-			if result['auth']:
-				request.session['email'] = result['message']
-				return HttpResponseRedirect('/')
-				
-			else:
-				# invalid barcode was provided
-				ret = RequestContext(request, {
-					'auth': result['error'],
-					'form': form,
-				})
-				
-				return render_to_response(settings.RES_LOGIN_TEMPLATE, ret)
-		
-		else:
-			c = RequestContext(request,{
-				'form': form,
-			})
-			c.update(csrf(request))
-			
-			return render_to_response(settings.RES_LOGIN_TEMPLATE, c)
-			
-	else:
-		# don't allow access to this view directly
-		return HttpResponseRedirect('/')
-		
-def logout(request):
-	request.session['email'] = False
-	return HttpResponseRedirect('/')
-	
-# the following are ajax versions of the above functions. they do not return forwarding requests,
+# the following are ajax functions. they do not return forwarding requests,
 # only json responses.
-
+''' This login function actually doesn't set any session information and only
+returns the user's email address or an empty string if the user was not found.
+As such, there is no need to "log out". This is used for one-off auth, or
+stateless authentication.
+'''
 def ajax_login(request):
 	# ensure this wasn't a post attempt
 	if request.method == 'GET':
@@ -98,12 +64,4 @@ def ajax_login(request):
 		
 	else:
 		return HttpResponse(json.dumps(False))
-		
-def ajax_logout(request):
-	# ensure this wasn't a POST attempt
-	if request.method == 'GET':
-		request.session['email'] = False
-		return HttpResponse(json.dumps(True))
-		
-	else:
-		return HttpResponse(json.dumps(False))
+

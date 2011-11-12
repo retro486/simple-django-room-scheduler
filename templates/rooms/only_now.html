@@ -33,35 +33,31 @@
 
 {% block main_col %}
 <h2>Current Availability</h2>
-{% if res.rooms|length = 0 or res.times|length = 0 %}
+{% if avail|length = 1 %}
 <p>No rooms have been added yet. Please finish configuring this application in the administrative back-end.</p>
 {% else %}
-{% if email %}
-<div class="tip">Click and drag in the slots marked as <span class="available">available</span> below to reserve a room.</div>
-<!-- hidden by default and shown only when selecting a time range -->
-<div id="confirmation">
-	<div>Do you want to book room <span id="conf_room"></span> from <span id="conf_begin"></span> to
-		<span id="conf_end"></span> <span id="conf_date">today</span>?</div>
-</div>
-{% endif %}
-<ul class="res_left_axis">
-	<li>&nbsp;</li>
-	{% for time in times %}
-		<li class="header">{{ time }}</li>
+<table id="availability">
+	{% for row in avail %}
+		{% cycle '' 'odd' as row_color silent %}
+		{# alternating row styles #}
+		<tr class="{{ row_color }}">
+		{% for e in row %}
+			{% if avail|first = row %}
+				<th>{{ e }}</th>
+			{% else %}
+				{% if row|first = e %}
+					<th class="header">{{ e }}</th>
+				{% else %}
+					<td class="{% if e = 0 %}available{% else %}{% if e = -1 %}closed{% else %}occupied{% endif %}{% endif %}">&nbsp;</td>
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+		</tr>
 	{% endfor %}
-</ul>
-	
-{% for room in rooms %}
-<ul class="room_list">
-	{% for e in room %}
-		{% if room|first = e %}
-		<li class="header">{{ e }}</li>
-		{% else %}
-		<li class="{% if e.0 = -1 %}closed{% else %}{% if e.0 = 1 %}occupied{% else %}available{% endif %}{% endif %}{% if e.1 %} editable{% endif %} room_{{ e.2 }}">&nbsp;</li>
-		{% endif %}
-	{% endfor %}
-</ul>
-{% endfor %}
+	{% comment %}Blank row to cap the bottom; make sure RES_LOOK_AHEAD_HOURS is some
+	factor of 0.5 or else the bottom cap won't look right.{% endcomment %}
+	<tr class="odd">{% for e in avail|first %}<td></td>{% endfor %}</tr>
+</table>
 {% endif %}
 {% endblock %}
 

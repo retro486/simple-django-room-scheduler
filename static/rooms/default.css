@@ -30,57 +30,24 @@
 	background-color: #333;
 }
 
-.res_left_axis, .room_list {
-	width: 5em;
-	padding: 0;
-	float: left;
-	margin: 0 0.2em;
-	list-style: none;
+#availability {
+	width: 100%;
 }
 
-.res_left_axis li, .room_list li {
-	margin: 0.3em 0;
-	text-align: right; /* prevent accidental selecting */
-}
-
-.room_list {
+#availability th {
 	text-align: center;
 }
 
-.header {
-	font-weight: bold;
-	text-align: center !important;
+#availability .header {
+	width: 6em;
 }
 
-/* must appear below .header for alignment to work */
-.res_left_axis li {
-	text-align: right !important;
+#availability td, #availability th {
+	border-bottom: 2px solid #ccc;
+	border-top: none;
 }
 
-.ui-selecting {
-	background-color: #9F9;
-}
-.ui-selected {
-	background-color: #060;
-}
-
-.tip {
-	margin: 1em auto;
-	font-size: small;
-}
-.tip .available {
-	padding: 0.1em;
-}
-
-#confirmation {
-	display: none;
-}
-
-#conf_room, #conf_begin, #conf_end, #conf_date {
-	font-weight: bold;
-}
-
-#time {
-	text-align: center;
-	margin: 0.5em;
+#availability .odd td, #availability .odd th {
+		border-top: 2px solid #ccc;
+		border-bottom: none;
 }
