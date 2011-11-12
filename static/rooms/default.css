@@ -1,33 +1,23 @@
-#side_col table {
-	width: 100%;
-	margin: 0;
-}
-
-#side_col th {
-	padding-bottom: 0.2em;
-}
-
-#side_col td {
-	font-size: small;
-	padding: 0.2em;
+#action_buttons {
+	text-align: center;
+	margin-bottom: 1em;
 }
 
 #bookroom, #checkin {
 	font-size: 1em;
 	margin: 0.5em;
+	font-weight: bold;
+}
+#checkin {
+	margin-right: 2em;
 }
 
 .available {
-	background-color: #0C0;
-	color: #FFF;
+	background-color: #6D6;
 }
 
-.occupied {
-	background-color: #C00;
-}
-
-.closed {
-	background-color: #333;
+.unavailable {
+	background-color: #CCC;
 }
 
 #availability {
@@ -50,4 +40,12 @@
 #availability .odd td, #availability .odd th {
 		border-top: 2px solid #ccc;
 		border-bottom: none;
+}
+
+#login_form, #scan_key_form, #select_time_form {
+	text-align: center;
+}
+
+#time {
+	margin: 0.5em 0;
 }

@@ -31,7 +31,7 @@ def default_view(request):
 
 	times.append('') # initial empty spot
 	# generate time labels
-	for i in range(0,((settings.RES_LOOK_AHEAD_HOURS + 0.5) * 60 / settings.RES_MIN_LENGTH)):
+	for i in range(0,(int(settings.RES_LOOK_AHEAD_HOURS + 0.5) * 60 / settings.RES_MIN_LENGTH)):
 		t = dt_start + timedelta(minutes=i*settings.RES_MIN_LENGTH)
 		times.append(':'.join(t.time().isoformat().split(':')[0:2]))
 	
@@ -59,7 +59,7 @@ def default_view(request):
 	
 	for i in range(0,len(times)):
 		t = []
-		t.append(times[i])
+		t.append(times[i].replace(':',''))
 		for room in rooms:
 			t.append(room[i])
 			
@@ -68,7 +68,6 @@ def default_view(request):
 	c = RequestContext(request, {
 		'page_title': 'Welcome!',
 		'avail': avail,
-		'swap_axis': settings.RES_SWAP_AXIS,
 	})
 	c.update(csrf(request))
 
@@ -151,7 +150,7 @@ datetime_end is set to datetime.now().
 If force is set to True, it will update a reservation's end datetime with now()
 regardless of if a reservation ended earlier today.
 '''
-def return_key(barcode,force=False):
+def return_key(barcode,force):
 	ret = {
 		'success': False,
 		'error': '',
@@ -183,12 +182,11 @@ def return_key(barcode,force=False):
 		datetime_start__gte=today,
 		datetime_end__lte=tomorrow,
 		type=1 # not closed
-	).order_by('datetime_start')
+	).order_by('-datetime_start')
 	
 	if len(res) > 0:
 		item = res[0] # get latest reservation
 		
-		# only check in keys 
 		if force == True or item.datetime_end >= datetime.now():
 			# set the end datetime to now since we're checking the room key in now.
 			# this not only aids in correcting early checkins, but late checkins as well.
@@ -209,6 +207,6 @@ def ajax_return_key(request):
 	}
 	
 	if request.method == 'GET':
-		ret = return_key( request.GET.get('barcode', '0') )
+		ret = return_key( request.GET.get('barcode', '0'), True )
 		
 	return HttpResponse(json.dumps(ret))

@@ -1,22 +1,18 @@
 {% extends "main.html" %}
 {% block extra_head %}
 <!-- stylesheets and js libraries here -->
-<link rel="stylesheet" type="text/css" media="screen" href="{{ MEDIA_URL }}/jquery-ui/css/redmond/jquery-ui-1.8.16.custom.css" />
+<link rel="stylesheet" type="text/css" media="screen" href="{{ MEDIA_URL }}/jquery-ui/css/smoothness/jquery-ui-1.8.16.custom.css" />
 <link rel="stylesheet" type="text/css" media="screen" href="{{ MEDIA_URL }}/rooms/default.css" />
 <script type="text/javascript" src="{{ MEDIA_URL }}/jquery-ui/js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}/jquery-ui/js/jquery-ui-1.8.16.custom.min.js"></script>
 {% endblock %}
 
-{% block side_col %}
-<table>
-	<tr><th colspan="2">Legend</th></tr> 
-	<tr><td class="available">&nbsp;</td><td>Available</td></tr>
-	<tr><td class="occupied">&nbsp;</td><td>Occupied</td></tr>
-	<tr><td class="closed">&nbsp;</td><td>Closed</td></tr>
-</table>
-<br />
-<div id="checkin">Return a Key</div>
-<div id="bookroom">Book a Room</div>
+{% block main_content %}
+<div id="action_buttons">
+	<div id="checkin">Return a Key</div>
+	<div id="bookroom">Book a Room</div>
+</div>
+
 <div id="login_form" style="display: none;">
 	<input type="text" id="id_barcode" />
 </div>
@@ -29,10 +25,7 @@
 </div>
 <div id="error_dialog" style="display: none;">
 </div>
-{% endblock %}
 
-{% block main_col %}
-<h2>Current Availability</h2>
 {% if avail|length = 1 %}
 <p>No rooms have been added yet. Please finish configuring this application in the administrative back-end.</p>
 {% else %}
@@ -48,7 +41,7 @@
 				{% if row|first = e %}
 					<th class="header">{{ e }}</th>
 				{% else %}
-					<td class="{% if e = 0 %}available{% else %}{% if e = -1 %}closed{% else %}occupied{% endif %}{% endif %}">&nbsp;</td>
+					<td class="{% if e = 0 %}available{% else %}unavailable{% endif %}">&nbsp;</td>
 				{% endif %}
 			{% endif %}
 		{% endfor %}

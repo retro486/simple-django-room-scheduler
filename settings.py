@@ -14,6 +14,8 @@ RES_BARCODE_URL = 'http://localhost/barcode.html?'
 #NOTE: this will eventually be replaced with SIP2 auth.
 
 # Prevent users from requesting reservations that occur in the past?
+# note this isn't an issue with the default kiosk-style template where users
+# can only say how long they need the room for (on-demand)
 RES_ENFORCE_NO_PAST = True
 
 # A list of tuples containing value, key pairs for reservations. Mostly for
@@ -27,14 +29,6 @@ RES_TYPE_CHOICES = (
 	(-1, 'Closed'),
 )
 
-# User quotas: enable them and if so, how many hours PER DAY to users get?
-RES_ENFORCE_DAILY_QUOTA = False
-RES_DAILY_QUOTA = 4.00 # decimal value in hours, regardless of room selection
-#NOTE: not sure how this would affect the DB if you change the format, i.e., xx.x or x.xxx or xxx.x etc.
-
-# Allow refunds of quota time if users turn in their keys early.
-RES_ALLOW_REFUNDS = True
-
 # More user quotas: enable maximum # of reservations (independent of max # of hours per day) and how
 # many reservations per day (TOTAL, regardless of room selection) do users get?
 RES_ENFORCE_MAX_NUM = True
@@ -46,7 +40,8 @@ RES_ENFORCE_OAAT = True
 
 # Enforce a minimum time on meetings and if so what amount of time is minimal
 # Helps prevent blocking off many small amounts of time. Can be used independent
-# of ENFORCE_MAX_RES.
+# of ENFORCE_MAX_NUM. Note this may or may not be helpful based on how your
+# reserve interface works.
 RES_ENFORCE_MIN_LENGTH = True
 RES_MIN_LENGTH = 30 # minutes
 

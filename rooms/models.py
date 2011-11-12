@@ -6,11 +6,6 @@ from django.db.models.signals import pre_delete
 
 class NPSUser(models.Model):
 	email = models.CharField(max_length=255, unique=True)
-	balance = models.DecimalField(default='0.0',
-		max_digits=len(str(settings.RES_DAILY_QUOTA)),
-		decimal_places=2, # doesn't need to be super-accurate and really should be in 
-						# increments of settings.RES_INTERVAL
-	)
 	# just some random date in the far past:
 	date_last_booking = models.DateField(default=date(2000,1,1)) 
 
@@ -63,7 +58,7 @@ class Reservation(models.Model):
 					datetime_start__lte=datetime.now(),
 					datetime_end__gte=datetime.now())
 				# if no exception at this point, user already has a reservation right now
-				raise ValidationError(u'You already have a reservation in progress. Please return the key for the current reservation before requested another one.')
+				raise ValidationError(u'You already have a reservation in progress. Please return the key for the current reservation before requesting another one.')
 			
 			except ValidationError as v:
 				raise v
@@ -78,30 +73,6 @@ class Reservation(models.Model):
 		if settings.RES_ENFORCE_MIN_LENGTH:
 			if (self.datetime_end - self.datetime_start).seconds / 60 < settings.RES_MIN_LENGTH:
 				raise ValidationError(u'The selected start and end dates/times do not meet the minimum length requirement of %i minutes.' % settings.RES_MIN_LENGTH)
-
-		if settings.RES_ENFORCE_DAILY_QUOTA and not is_admin:
-			balance = float(self.requested_user.balance)
-			
-			# reset the user's quota if they haven't booked any rooms today
-			if self.requested_user.date_last_booking < datetime.now().date():
-				self.requested_user.date_last_booking = datetime.now().date()
-				self.requested_user.balance = '0.0'
-				balance = 0.0
-			
-			elif balance > settings.RES_DAILY_QUOTA: 
-				raise ValidationError(u'You have met your daily reservation quota. Please share with another student or return tomorrow. Quotas are reset every day.')
-		
-			# check if the selected time slot would go over user's quota
-			elif balance + hours > settings.RES_DAILY_QUOTA:
-				raise ValidationError(u'The selected reservation length would put you over your daily alloted limit of %.2f hours. Please reduce your reservation time by %.2f hours and try again.' % (settings.RES_DAILY_QUOTA,(hours + balance - settings.RES_DAILY_QUOTA)))
-	
-		# if this is a modification or reschedule, refund the user the full value of the old schedule later
-		refund = 0.00
-		try:
-			r = Reservation.objects.get(pk=self.pk)
-			refund = float((r.datetime_end - datetime.now()).minutes / (60.00*60.00))
-		except:
-			pass # this is NOT a modification or reschedule because this reservation doesn't exist
 
 		if settings.RES_ENFORCE_MAX_NUM and not is_admin and len(Reservation.objects.filter(
 		  requested_user=self.requested_user,
@@ -133,30 +104,4 @@ class Reservation(models.Model):
 		if conflict:
 			raise ValidationError(u'There exists a reservation which conflicts with your requested dates and/or times.')
 
-		if settings.RES_ENFORCE_DAILY_QUOTA and not is_admin:
-			value = balance + hours
-			if settings.RES_ALLOW_REFUNDS:
-				value -= refund
-	
-			self.requested_user.balance = str(value) # has to do with how Decimal hates float :'(
-			self.requested_user.clean()
-			self.requested_user.save() # update the user object
-
 		return # model passes validation
-	
-'''
-Refunds a user their hours if a scheduled meeting is cancelled, but only if it was cancelled at most
-10 minutes after it started. Using pre_delete signal to ensure this gets caught on bulk deletes.
-'''
-def refund_before_delete(sender, **kwargs):
-	dt = timedelta(minutes=-(settings.RES_REFUND_THRESHOLD))
-	instance = kwargs['instance']
-	if datetime.now() < instance.datetime_start - dt:
-		refund = (instance.datetime_end - instance.datetime_start).seconds / (60.00*60.00)
-		balance = float(instance.requested_user.balance)
-		instance.requested_user.balance = str(balance - refund)
-		instance.requested_user.save()
-
-# hook into signals for special processing
-if settings.RES_ALLOW_REFUNDS:
-	pre_delete.connect(refund_before_delete, Reservation)

@@ -1,28 +1,20 @@
 body {
 	font-family: sans-serif;
-	background-color: #999;
+	background-color: #9C9CA0;
 }
 
 #frame {
 	background-color: #fff;
 	padding: 1em;
-	margin: 2em 1em;
+	margin: 1em 1em 2em 1em;
 	position: relative;
-	border: 1px solid #000;
+	min-width: 560px;
+	border-radius: 15px;
+	-moz-border-radius: 15px;
 }
 
-#side_col {
-	width: 15%;
-	float: left;
-	border-right: 2px dashed #ccc;
-	border-bottom: 2px dashed #ccc;
-	margin: 0;
-	padding: 0 0 1em 0;
-}
-
-#main_col {
-	width: 80%;
-	float: right;
-	padding: 0;
-	margin: 0;
+h1 {
+	text-align: center;
+	margin: 0 1em;
+	min-width: 560px;
 }

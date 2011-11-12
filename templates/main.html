@@ -9,15 +9,7 @@
 	<body>
 		<h1>DKL Study Rooms</h1>
 		<div id="frame">
-			<div id="side_col">
-				{% block side_col %}{% endblock %}
-			</div>
-			
-			<div id="main_col">
-				{% block main_col %}{% endblock %}
-			</div>
-
-			<div style="clear: both;"></div>
+			{% block main_content %}{% endblock %}
 		</div>
 		{% block footer %}{% endblock %}
 	</body>
