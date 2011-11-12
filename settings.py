@@ -50,10 +50,6 @@ RES_ENFORCE_OAAT = True
 RES_ENFORCE_MIN_LENGTH = True
 RES_MIN_LENGTH = 30 # minutes
 
-# Swap the axis of the templates from the default of times along x-axis and rooms along y-axis to
-# times along the y-axis and rooms along the x-axis.
-RES_SWAP_AXIS = True
-
 # Ignore the following user accounts when dealing with quotas:
 RES_ADMINS = ('libsys@nps.edu',)
 
