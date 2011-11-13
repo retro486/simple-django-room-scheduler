@@ -1,5 +1,12 @@
+import os
+curr_path = '/'.join(os.path.abspath(__file__).split('/')[0:-1])
+
 #################################
 # Custom settings for rooms app
+
+# Not custom, but really needs to be changed for each install.
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = 'type some random gibberish here'
 
 # The number of hours to look ahead on the front page; make sure this is some
 # factor of 0.5 or else the table footer won't render correctly.
@@ -18,17 +25,6 @@ RES_BARCODE_URL = 'http://localhost/barcode.html?'
 # can only say how long they need the room for (on-demand)
 RES_ENFORCE_NO_PAST = True
 
-# A list of tuples containing value, key pairs for reservations. Mostly for
-# statistics and for blocking off rooms to prevent bookings on holidays or
-# other days when the rooms are unavailable (under construction for example)
-# NOTE: any value of -1 will be blocked off on the calender and shown in the
-# legend and on the calendar with the "closed" styles and a value of 1 will
-# represent a normal reservation. No other values are used internally.
-RES_TYPE_CHOICES = (
-	(1, 'Normal'),
-	(-1, 'Closed'),
-)
-
 # More user quotas: enable maximum # of reservations (independent of max # of hours per day) and how
 # many reservations per day (TOTAL, regardless of room selection) do users get?
 RES_ENFORCE_MAX_NUM = True
@@ -46,7 +42,7 @@ RES_ENFORCE_MIN_LENGTH = True
 RES_MIN_LENGTH = 30 # minutes
 
 # Ignore the following user accounts when dealing with quotas:
-RES_ADMINS = ('libsys@nps.edu',)
+RES_ADMINS = ('some_admin_user@abc.com',)
 
 # END custom settings for rooms app
 #######################################
@@ -62,20 +58,19 @@ MEDIA_ROOT = '/var/www/html/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
-#MEDIA_URL = 'http://172.20.113.114:8008/media'
 MEDIA_URL = 'http://localhost/media/'
+
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    '/home/russ/repos/studyrooms/templates',
+    (curr_path + '/templates'),
 	#'/usr/local/dklstudy/studyrooms/templates',
 )
 
 ADMINS = (
-    ('Russell Bernhardt', 'rgbernha@nps.edu'),
+    ('Site Admin Name', 'site_admin_email@abc.com'),
 )
 
 MANAGERS = ADMINS
@@ -118,9 +113,6 @@ USE_L10N = True
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/media/'
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'l==+ynwudpf$b%%!lmuyfw!#!roqcw9llute2sq&u@@a4*oa(y'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (

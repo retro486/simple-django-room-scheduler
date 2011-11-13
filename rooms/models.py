@@ -34,12 +34,23 @@ class Room(models.Model):
 	def __str__(self):
 		return self.name
 
+# A list of tuples containing value, key pairs for reservations. Mostly for
+# statistics and for blocking off rooms to prevent bookings on holidays or
+# other days when the rooms are unavailable (under construction for example)
+# NOTE: any value of -1 will be blocked off on the calender and shown in the
+# legend and on the calendar with the "closed" styles and a value of 1 will
+# represent a normal reservation. No other values are used internally.
+RES_TYPE_CHOICES = (
+	(1, 'Normal'),
+	(-1, 'Closed'),
+)
+
 class Reservation(models.Model):
 	datetime_start = models.DateTimeField()
 	datetime_end = models.DateTimeField()
 	requested_user = models.ForeignKey(NPSUser)
 	room = models.ForeignKey(Room)
-	type = models.PositiveIntegerField(choices=settings.RES_TYPE_CHOICES, default=1)
+	type = models.PositiveIntegerField(choices=RES_TYPE_CHOICES, default=1)
 
 	def __str__(self):
 		return self.room.name + ': ' + self.datetime_start.ctime() + ' to ' + self.datetime_end.ctime()
