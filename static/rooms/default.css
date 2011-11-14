@@ -46,7 +46,7 @@
 	text-align: center;
 }
 
-#time {
+#curr_time {
 	margin: 1em 0;
 	text-align: center;
 	font-size: 1.5em;
@@ -55,4 +55,9 @@
 	font-family: courier, monospace;
 	font-weight: bold;
 	padding-left: 0.5em;
+}
+
+#time {
+	margin: 1em 0;
+	text-align: center;
 }

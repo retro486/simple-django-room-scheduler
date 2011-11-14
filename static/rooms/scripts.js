@@ -1,6 +1,7 @@
 // globals
 var barcode = '';
 var key_mode = 'checkout'; // checkout == normal process; return == only return.
+var refreshed = true;
 
 // clock function to show current military time
 function updateClock() {
@@ -9,8 +10,10 @@ function updateClock() {
 	var m = today.getMinutes();
 	
 	// if clock just changed to an interval of 30, refresh the whole page
-	if (m == 30 || m == 0) {
+	if ((m == 30 || m == 0) && !refreshed) {
 		safeRefresh();
+	} else if (m != 30 && m !== 0 && refreshed) {
+		refreshed = false;
 	}
 	
 	if (h < 10) {
@@ -30,6 +33,94 @@ function safeRefresh() {
 	}
 }
 
+function errorDialogClose(dialog) {
+	$(dialog).dialog({title: 'An Error Occured',}); // override back to default
+	$(dialog).dialog('close');
+	$('#id_keybarcode').focus();
+}
+
+function loginDialogOk(dialog) {
+	$(dialog).dialog('close');
+	$.getJSON('/ajax_login/?barcode=' + $('#id_barcode').attr('value'),
+		function(data) {
+			$('#id_barcode').attr('value',''); // reset barcode input box
+			if (data['auth']) {
+				email = data['message'];
+				$('#scan_key_form').dialog('open');
+				$('#id_keybarcode').focus();
+			} else {
+				$(dialog).html(data['error']);
+				$(dialog).dialog('open');
+			}
+		}
+	);
+}
+
+function scanKeyDialogOk(dialog) {
+	$(dialog).dialog('close');
+	if (key_mode == 'checkout') {
+		$.getJSON('/ajax_roomkey/?barcode=' + $('#id_keybarcode').attr('value'),
+			function(data) {
+				barcode = $('#id_keybarcode').attr('value');
+				$('#id_keybarcode').attr('value','');
+				if (data['error'].length > 0) {
+					$('#error_dialog').html(data['error']);
+					$('#error_dialog').dialog('open');
+				} else {
+					$('#select_time_form').dialog('open');
+				}
+			}
+		);
+	} else if (key_mode == 'return') {
+		$.getJSON('/ajax_roomkey_checkin/?barcode=' + $('#id_keybarcode').attr('value'),
+			function(data) {
+				$('#id_keybarcode').attr('value','');
+				if (data['success']) {
+					$('#error_dialog').dialog({title: 'Thank You',
+						buttons: {
+							'OK': function() {	
+								$(dialog).dialog('close');
+								window.location.reload();
+							}
+						},
+					});
+					$('#error_dialog').html('Your key has been returned. Thank you.');
+					$('#error_dialog').dialog('open');
+				} else {
+					$('#error_dialog').html(data['error']);
+					$('#error_dialog').dialog('open');
+				}
+			}
+		);
+	}
+}
+
+function selectTimeDialogOk(dialog) {
+	// push the requested minutes, email address, and room to the server
+	$.getJSON('/ajax_reserve/?email=' + email + '&barcode=' + barcode
+		+ '&minutes=' + $('#time_slider').slider('value'),
+		function(data) {
+			if (data['success']) {
+				$(dialog).dialog('close');
+				$('#error_dialog').dialog({
+					title: 'Reservation Complete',
+					buttons: {
+						'OK': function() {
+							$(dialog).dialog('close');
+							window.location.reload();
+						}
+					}
+				});
+				$('#error_dialog').html('Your reservation was successful. You may now proceed to your room.');
+				$('#error_dialog').dialog('open');
+			} else {
+				$('#error_dialog').html(data['error']);
+				$('#error_dialog').dialog('open');
+			}
+		}
+	);
+}
+
 $(document).ready(function() {
 
 $('#error_dialog').dialog({
@@ -40,13 +131,16 @@ $('#error_dialog').dialog({
 	resizable: false,
 	title: 'An Error Occured',
 	buttons: {
-		'Close': function() {
-			$(this).dialog({title: 'An Error Occured',}); // override back to default
-			$(this).dialog('close');
-			$('#id_keybarcode').focus();
-		}
+		'Close': function() { errorDialogClose(this); },
 	},
-});
+})
+.keyup(function(e) {
+	// handler for when ENTER/RETURN is pressed in this dialog
+    if (e.keyCode == 13) {
+        errorDialogClose(this);
+    }
+})
+;
 
 $('#time_slider').slider({
 	// all values in minutes
@@ -86,28 +180,19 @@ $('#login_form').dialog({
 	resizable: false,
 	title: 'Scan Library Card Now...',
 	buttons: {
-		'Next': function() {
-			$(this).dialog('close');
-			$.getJSON('/ajax_login/?barcode=' + $('#id_barcode').attr('value'),
-				function(data) {
-					$('#id_barcode').attr('value',''); // reset barcode input box
-					if (data['auth']) {
-						email = data['message'];
-						$('#scan_key_form').dialog('open');
-						$('#id_keybarcode').focus();
-					} else {
-						$('#error_dialog').html(data['error']);
-						$('#error_dialog').dialog('open');
-					}
-				}
-			);
-		},
+		'Next': function() { loginDialogOk(this); },
 		'Cancel': function() {
 			$(this).dialog('close');
 			$('#id_barcode').attr('value','');
 			$('#safe').html('true');
 		}
 	},
+})
+.keyup(function(e) {
+	// handler for when ENTER/RETURN is pressed in this dialog
+    if (e.keyCode == 13) {
+        loginDialogOk(this);
+    }
 });
 
 $('#scan_key_form').dialog({
@@ -118,51 +203,19 @@ $('#scan_key_form').dialog({
 	resizable: false,
 	title: 'Scan Key Now...',
 	buttons: {
-		'Next': function() {
-			$(this).dialog('close');
-			if (key_mode == 'checkout') {
-				$.getJSON('/ajax_roomkey/?barcode=' + $('#id_keybarcode').attr('value'),
-					function(data) {
-						barcode = $('#id_keybarcode').attr('value');
-						$('#id_keybarcode').attr('value','');
-						if (data['error'].length > 0) {
-							$('#error_dialog').html(data['error']);
-							$('#scan_key_form').dialog('open'); // try again
-							$('#error_dialog').dialog('open');
-						} else {
-							$('#select_time_form').dialog('open');
-						}
-					}
-				);
-			} else if (key_mode == 'return') {
-				$.getJSON('/ajax_roomkey_checkin/?barcode=' + $('#id_keybarcode').attr('value'),
-					function(data) {
-						$('#id_keybarcode').attr('value','');
-						if (data['success']) {
-							$('#error_dialog').dialog({title: 'Thank You',
-								buttons: {
-									'OK': function() {
-										$(this).dialog('close');
-										window.location.reload();
-									}
-								},
-							});
-							$('#error_dialog').html('Your key has been returned. Thank you.');
-							$('#error_dialog').dialog('open');
-						} else {
-							$('#error_dialog').html(data['error']);
-							$('#error_dialog').dialog('open');
-						}
-					}
-				);
-			}
-		},
+		'Next': function() { scanKeyDialogOk(this); },
 		'Cancel': function() {
 			$(this).dialog('close');
 			$('#id_keybarcode').attr('value','');
 			$('#safe').html('true');
 		}
 	},
+})
+.keyup(function(e) {
+	// handler for when ENTER/RETURN is pressed in this dialog
+    if (e.keyCode == 13) {
+        scanKeyDialogOk(this);
+    }
 });
 
 $('#select_time_form').dialog({
@@ -173,36 +226,18 @@ $('#select_time_form').dialog({
 	resizable: false,
 	title: 'Select Length of Time',
 	buttons: {
-		'Submit': function() {
-			// push the requested minutes, email address, and room to the server
-			$.getJSON('/ajax_reserve/?email=' + email + '&barcode=' + barcode
-				+ '&minutes=' + $('#time_slider').slider('value'),
-				function(data) {
-					if (data['success']) {
-						$('#select_time_form').dialog('close');
-						$('#error_dialog').dialog({
-							title: 'Reservation Complete',
-							buttons: {
-								'OK': function() {
-									$(this).dialog('close');
-									window.location.reload();
-								}
-							}
-						});
-						$('#error_dialog').html('Your reservation was successful. You may now proceed to your room.');
-						$('#error_dialog').dialog('open');
-					} else {
-						$('#error_dialog').html(data['error']);
-						$('#error_dialog').dialog('open');
-					}
-				}
-			);
-		},
+		'Submit': function() { selectTimeDialogOk(this); },
 		'Cancel': function() {
 			$(this).dialog('close');
 			$('#safe').html('true');
 		}
 	},
+})
+.keyup(function(e) {
+	// handler for when ENTER/RETURN is pressed in this dialog
+    if (e.keyCode == 13) {
+        selectTimeDialogOk(this);
+    }
 });
 
 $('#bookroom').button()
