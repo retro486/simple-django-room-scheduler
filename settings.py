@@ -15,10 +15,12 @@ RES_LOOK_AHEAD_HOURS = 6.5
 # The default template to use for the front page
 RES_DEFAULT_TEMPLATE = 'rooms/only_now.html'
 
+# Note this project makes use of the vufind-unicorn driver.pl file, though
+# we use a slightly modified version, the out of box version should work
+# well. If you use Unicorn on a Windows server, you will need a modified
+# copy here: http://pastebin.com/Rv4TmHpV
 # The temporary URL to the modified VuFind driver.pl file on the biblio server:
-#RES_BARCODE_URL = 'http://biblio.ern.nps.edu/vufind/?query=checkBarcode&patronId='
-RES_BARCODE_URL = 'http://localhost/barcode.html?'
-#NOTE: this will eventually be replaced with SIP2 auth.
+RES_BARCODE_URL = 'http://localhost/cgi-bin/driver.pl?query=checkBarcode&patronId='
 
 # Prevent users from requesting reservations that occur in the past?
 # note this isn't an issue with the default kiosk-style template where users
@@ -66,7 +68,6 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     (curr_path + '/templates'),
-	#'/usr/local/dklstudy/studyrooms/templates',
 )
 
 ADMINS = (

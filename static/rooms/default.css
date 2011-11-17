@@ -61,3 +61,7 @@
 	margin: 1em 0;
 	text-align: center;
 }
+
+#error_dialog {
+	text-align: left;
+}

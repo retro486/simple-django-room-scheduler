@@ -31,8 +31,8 @@ def default_view(request):
 
 	times.append('') # initial empty spot
 	# generate time labels
-	for i in range(0,(int(settings.RES_LOOK_AHEAD_HOURS + 0.5) * 60 / settings.RES_MIN_LENGTH)):
-		t = dt_start + timedelta(minutes=i*settings.RES_MIN_LENGTH)
+	for i in range(0,(int(settings.RES_LOOK_AHEAD_HOURS + 0.5) * 60 / settings.RES_LOOK_AHEAD_INC)):
+		t = dt_start + timedelta(minutes=i*settings.RES_LOOK_AHEAD_INC)
 		times.append(':'.join(t.time().isoformat().split(':')[0:2]))
 	
 	# generate room reservation list
@@ -45,8 +45,8 @@ def default_view(request):
 			else:
 				(hour,minute) = time.split(':')
 				adj = today + timedelta(hours=int(hour),minutes=int(minute))
-				prev = adj - timedelta(minutes=settings.RES_MIN_LENGTH)
-				next = adj + timedelta(minutes=settings.RES_MIN_LENGTH)
+				prev = adj - timedelta(minutes=settings.RES_LOOK_AHEAD_INC)
+				next = adj + timedelta(minutes=settings.RES_LOOK_AHEAD_INC)
 				cur = Reservation.objects.filter(
 					Q(room=room),
 					(Q(datetime_start__gte=prev) & Q(datetime_start__lte=next)) | Q(datetime_end__gte=prev),

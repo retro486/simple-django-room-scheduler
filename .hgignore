@@ -2,3 +2,4 @@ syntax: regexp
 ^.*\.pyc
 ^.*\.sqlite3
 ^.*~
+settings.py.local
