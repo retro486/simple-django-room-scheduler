@@ -43,9 +43,6 @@ RES_ENFORCE_OAAT = True
 RES_ENFORCE_MIN_LENGTH = True
 RES_MIN_LENGTH = 30 # minutes
 
-# Ignore the following user accounts when dealing with quotas:
-RES_ADMINS = ('some_admin_user@abc.com',)
-
 # END custom settings for rooms app
 #######################################
 

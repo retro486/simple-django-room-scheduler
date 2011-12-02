@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 from roomkeys.models import RoomKey
-from models import Reservation,Room,NPSUser
+from models import Reservation,Room,Patron
 
 
 def default_view(request):
@@ -20,10 +20,10 @@ def default_view(request):
 	dt_start = dt_start - time_fix
 	today = datetime.fromordinal(date.today().toordinal())
 	
+    # how long ago do we display; by default: whatever RES_MIN_LENGTH is (30 minutes by default)
 	floor = dt_start - timedelta(minutes=settings.RES_MIN_LENGTH)
+    # how far ahead do we display; taken from settings.py and adjusts to make the template line up
 	ceiling = dt_start + timedelta(hours=(settings.RES_LOOK_AHEAD_HOURS + 0.5))
-	
-	email = request.session.get('email', False)
 	
 	times = []
 	rooms = []
@@ -79,10 +79,14 @@ def reserve(email,roombc,datetime_start,datetime_end):
 		'error': '',
 	}
 	
+    if len(email) == 0 or len(roombc) == 0 or datetime_start is None or datatime_end is None:
+        ret['error'] = 'INTERNAL ERROR: reserve function was not given valid values.'
+        return ret
+    
 	try:
-		user = NPSUser.objects.get(email=email)
+		user = Patron.objects.get(email=email)
 	except:
-		user = NPSUser()
+		user = Patron()
 		user.email = email
 		user.date_last_booking = datetime.now() # mostly for daily quotas
 		

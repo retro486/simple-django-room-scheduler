@@ -4,7 +4,14 @@ from datetime import datetime,timedelta,date
 from django.conf import settings
 from django.db.models.signals import pre_delete
 
-class NPSUser(models.Model):
+class RoomKey(models.Model):
+	barcode = models.CharField(max_length=100,unique=True)
+	room = models.ForeignKey(Room)
+	
+	def __str__(self):
+		return self.room.name
+
+class Patron(models.Model):
 	email = models.CharField(max_length=255, unique=True)
 	# just some random date in the far past:
 	date_last_booking = models.DateField(default=date(2000,1,1)) 
@@ -48,7 +55,7 @@ RES_TYPE_CHOICES = (
 class Reservation(models.Model):
 	datetime_start = models.DateTimeField()
 	datetime_end = models.DateTimeField()
-	requested_user = models.ForeignKey(NPSUser)
+	requested_user = models.ForeignKey(Patron)
 	room = models.ForeignKey(Room)
 	type = models.PositiveIntegerField(choices=RES_TYPE_CHOICES, default=1)
 

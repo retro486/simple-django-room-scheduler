@@ -1,4 +1,3 @@
-from rooms.models import NPSUser
 from django.http import HttpResponseRedirect,HttpResponse
 import sys
 from django.template import RequestContext
@@ -12,7 +11,7 @@ import json
 Ideally this would use SIP2, but our internal SIP2 server is heavily locked down and
 to gain access would require much paperwork, so for now we confirm the validity of
 a user's barcode (and obtain their email address) via a slightly modified VuFind
-driver.pl script running on the Sirsi server as http://biblio/vufind/
+driver.pl script running on the Sirsi server as http://sirsi/vufind/
 
 Returns a dictionary with keys:
   * auth: True if user was validated, False if they were not.

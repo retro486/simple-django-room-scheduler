@@ -3,3 +3,4 @@ syntax: regexp
 ^.*\.sqlite3
 ^.*~
 settings.py.local
+settings.py.dist
