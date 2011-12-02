@@ -4,13 +4,6 @@ from datetime import datetime,timedelta,date
 from django.conf import settings
 from django.db.models.signals import pre_delete
 
-class RoomKey(models.Model):
-	barcode = models.CharField(max_length=100,unique=True)
-	room = models.ForeignKey(Room)
-	
-	def __str__(self):
-		return self.room.name
-
 class Patron(models.Model):
 	email = models.CharField(max_length=255, unique=True)
 	# just some random date in the far past:
@@ -41,6 +34,13 @@ class Room(models.Model):
 	def __str__(self):
 		return self.name
 
+class RoomKey(models.Model):
+	barcode = models.CharField(max_length=100,unique=True)
+	room = models.ForeignKey(Room)
+	
+	def __str__(self):
+		return self.room.name
+        
 # A list of tuples containing value, key pairs for reservations. Mostly for
 # statistics and for blocking off rooms to prevent bookings on holidays or
 # other days when the rooms are unavailable (under construction for example)
