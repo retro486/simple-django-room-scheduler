@@ -2,6 +2,7 @@
 var barcode = '';
 var key_mode = 'checkout'; // checkout == normal process; return == only return.
 var refreshed = true;
+var RES_LOOK_AHEAD_INC = 15; // make sure this matches the same variable in app settings
 
 // clock function to show current military time
 function updateClock() {
@@ -9,10 +10,10 @@ function updateClock() {
 	var h = today.getHours();
 	var m = today.getMinutes();
 	
-	// if clock just changed to an interval of 30, refresh the whole page
-	if ((m == 30 || m == 0) && !refreshed) {
+	// if clock just changed to an interval of RES_LOOK_AHEAD_INC minutes, refresh the whole page
+    if ((m == RES_LOOK_AHEAD_INC || m == 0) && !refreshed) {
 		safeRefresh();
-	} else if (m != 30 && m !== 0 && refreshed) {
+	} else if (m != RES_LOOK_AHEAD_INC && m !== 0 && refreshed) {
 		refreshed = false;
 	}
 	

@@ -11,9 +11,10 @@ SECRET_KEY = 'type some random gibberish here'
 # The number of hours to look ahead on the front page; make sure this is some
 # factor of 0.5 or else the table footer won't render correctly.
 RES_LOOK_AHEAD_HOURS = 6.5
+RES_LOOK_AHEAD_INC = 15 # increment to use on the template in minutes
 
 # The default template to use for the front page
-RES_DEFAULT_TEMPLATE = 'rooms/only_now.html'
+RES_DEFAULT_TEMPLATE = 'rooms/default.html'
 
 # Note this project makes use of the vufind-unicorn driver.pl file, though
 # we use a slightly modified version, the out of box version should work
@@ -48,7 +49,7 @@ RES_MIN_LENGTH = 30 # minutes
 
 # Django settings for studyrooms project.
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # Absolute path to the directory that holds media.
@@ -62,7 +63,7 @@ MEDIA_URL = 'http://localhost/media/'
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+ADMIN_MEDIA_PREFIX = '/media/admin/'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".

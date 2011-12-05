@@ -15,25 +15,25 @@ from models import Reservation,Room,Patron,RoomKey
 
 def default_view(request):
     dt_start = datetime.now()
-    time_fix = timedelta(minutes=dt_start.minute % settings.RES_MIN_LENGTH, seconds=dt_start.second,
+    time_fix = timedelta(minutes=dt_start.minute % settings.RES_LOOK_AHEAD_INC, seconds=dt_start.second,
       microseconds=dt_start.microsecond) # zero out seconds
-    dt_start = dt_start - time_fix
+    dt_start = dt_start - time_fix # round to nearest incrememnt
     today = datetime.fromordinal(date.today().toordinal())
-    
-    # how long ago do we display; by default: whatever RES_MIN_LENGTH is (30 minutes by default)
-    floor = dt_start - timedelta(minutes=settings.RES_MIN_LENGTH)
-    # how far ahead do we display; taken from settings.py and adjusts to make the template line up
-    ceiling = dt_start + timedelta(hours=(settings.RES_LOOK_AHEAD_HOURS + 0.5))
     
     times = []
     rooms = []
     avail = []
 
+    # the very first line on the table should be one increment behind
+    floor = dt_start - timedelta(minutes=settings.RES_LOOK_AHEAD_INC)
+    
     times.append('') # initial empty spot
+    minute_list = range(0, settings.RES_LOOK_AHEAD_HOURS * 60)
     # generate time labels
-    for i in range(0,(int(settings.RES_LOOK_AHEAD_HOURS + 0.5) * 60 / settings.RES_LOOK_AHEAD_INC)):
-        t = dt_start + timedelta(minutes=i*settings.RES_LOOK_AHEAD_INC)
-        times.append(':'.join(t.time().isoformat().split(':')[0:2]))
+    for i in minute_list:
+        if i % settings.RES_LOOK_AHEAD_INC == 0:
+            t = dt_start + timedelta(minutes=i)
+            times.append(':'.join(t.time().isoformat().split(':')[0:2]))
     
     # generate room reservation list
     for room in Room.objects.all():
