@@ -34,9 +34,15 @@ function safeRefresh() {
 }
 
 function errorDialogClose(dialog) {
-	$(dialog).dialog({title: 'An Error Occured',}); // override back to default
+	$(dialog).dialog({
+        title: 'An Error Occured',
+        buttons: {
+            'Close': function() {
+                $(dialog).dialog('close');
+            }
+        }
+    }); // override back to default
 	$(dialog).dialog('close');
-	$('#id_keybarcode').focus();
 }
 
 function loginDialogOk(dialog) {
@@ -44,13 +50,14 @@ function loginDialogOk(dialog) {
 	$.getJSON('/ajax_login/?barcode=' + $('#id_barcode').attr('value'),
 		function(data) {
 			$('#id_barcode').attr('value',''); // reset barcode input box
+            $(dialog).dialog('close');
 			if (data['auth']) {
 				email = data['message'];
 				$('#scan_key_form').dialog('open');
 				$('#id_keybarcode').focus();
 			} else {
-				$(dialog).html(data['error']);
-				$(dialog).dialog('open');
+				$('#error_dialog').html(data['error']);
+				$('#error_dialog').dialog('open');
 			}
 		}
 	);
@@ -61,9 +68,9 @@ function scanKeyDialogOk(dialog) {
 	if (key_mode == 'checkout') {
 		$.getJSON('/ajax_roomkey/?barcode=' + $('#id_keybarcode').attr('value'),
 			function(data) {
-				barcode = $('#id_keybarcode').attr('value');
-				$('#id_keybarcode').attr('value','');
+                $(dialog).dialog('close');
 				if (data['error'].length > 0) {
+                    $('#id_keybarcode').attr('value','');
 					$('#error_dialog').html(data['error']);
 					$('#error_dialog').dialog('open');
 				} else {
@@ -75,6 +82,7 @@ function scanKeyDialogOk(dialog) {
 		$.getJSON('/ajax_roomkey_checkin/?barcode=' + $('#id_keybarcode').attr('value'),
 			function(data) {
 				$('#id_keybarcode').attr('value','');
+                $(dialog).dialog('close');
 				if (data['success']) {
 					$('#error_dialog').dialog({title: 'Thank You',
 						buttons: {
@@ -95,11 +103,14 @@ function scanKeyDialogOk(dialog) {
 	}
 }
 
+// TODO replace the error dialog that is used for notices with a notice dialog
 function selectTimeDialogOk(dialog) {
+    $(dialog).dialog('close');
 	// push the requested minutes, email address, and room to the server
-	$.getJSON('/ajax_reserve/?email=' + email + '&barcode=' + barcode
+	$.getJSON('/ajax_reserve/?email=' + email + '&barcode=' + $('#id_keybarcode').attr('value')
 		+ '&minutes=' + $('#time_slider').slider('value'),
 		function(data) {
+            $('#id_keybarcode').attr('value','');
 			if (data['success']) {
 				$(dialog).dialog('close');
 				$('#error_dialog').dialog({

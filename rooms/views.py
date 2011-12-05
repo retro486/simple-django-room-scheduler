@@ -79,8 +79,9 @@ def reserve(email,roombc,datetime_start,datetime_end):
         'error': '',
     }
     
-    if len(email) == 0 or len(roombc) == 0 or datetime_start is None or datatime_end is None:
+    if len(email) == 0 or len(roombc) == 0 or datetime_start is None or datetime_end is None:
         ret['error'] = 'INTERNAL ERROR: reserve function was not given valid values.'
+        #print "ERROR: {%s} {%s} {%s} {%s}" % (email,roombc,datetime_start,datetime_end)
         return ret
     
     try:
