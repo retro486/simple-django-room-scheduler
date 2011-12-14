@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 LOGFILE=/var/log/django-studyrooms.log
+PIDFILE=/var/run/django-studyrooms.pid
 LOGDIR=$(dirname $LOGFILE)
 NUM_WORKERS=3
 # user/group to run as
@@ -11,4 +12,4 @@ source ../bin/activate
 test -d $LOGDIR || mkdir -p $LOGDIR
 exec ../bin/gunicorn_django -w $NUM_WORKERS \
 --user=$USER --group=$GROUP --log-level=debug \
---log-file=$LOGFILE --daemon 2>>$LOGFILE
+--log-file=$LOGFILE --daemon --pid $PIDFILE 2>>$LOGFILE

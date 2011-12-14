@@ -263,8 +263,14 @@ def bare_login(barcode):
     }
     message = ''
     
+    # new feature: allow either barcode or username, and capitalizes username
+    if barcode.isdigit():
+        url = settings.RES_BARCODE_URL + barcode
+    else:
+        url = settings.RES_USERNAME_URL + barcode.upper()
+    
     try:
-        response = urllib2.urlopen(settings.RES_BARCODE_URL + barcode)
+        response = urllib2.urlopen(url)
         message = response.read()
         if len(message) == 0:
             ret['auth'] = False

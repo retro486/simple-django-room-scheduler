@@ -22,6 +22,7 @@ RES_DEFAULT_TEMPLATE = 'rooms/default.html'
 # copy here: http://pastebin.com/Rv4TmHpV
 # The temporary URL to the modified VuFind driver.pl file on the biblio server:
 RES_BARCODE_URL = 'http://localhost/cgi-bin/driver.pl?query=checkBarcode&patronId='
+RES_USERNAME_URL = 'http://localhost/cgi-bin/driver.pl?query=checkUsername&username='
 
 # Prevent users from requesting reservations that occur in the past?
 # note this isn't an issue with the default kiosk-style template where users

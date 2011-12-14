@@ -11,9 +11,9 @@ function updateClock() {
 	var m = today.getMinutes();
 	
 	// if clock just changed to an interval of RES_LOOK_AHEAD_INC minutes, refresh the whole page
-    if ((m == RES_LOOK_AHEAD_INC || m == 0) && !refreshed) {
+    if ((m % RES_LOOK_AHEAD_INC == 0 || m == 0) && !refreshed) {
 		safeRefresh();
-	} else if (m != RES_LOOK_AHEAD_INC && m !== 0 && refreshed) {
+	} else if (m % RES_LOOK_AHEAD_INC != 0 && m !== 0 && refreshed) {
 		refreshed = false;
 	}
 	
@@ -29,9 +29,8 @@ function updateClock() {
 // safely refreshes the current window if and only if no dialogs are open so it
 // won't interrupt any reservations in progress.
 function safeRefresh() {
-	if ($('#safe').html() == 'true') {
-		window.location.reload();
-	}
+	window.location.reload();
+	refreshed = true;
 }
 
 function errorDialogClose(dialog) {
@@ -190,7 +189,7 @@ $('#login_form').dialog({
 	draggable: false,
 	modal: true,
 	resizable: false,
-	title: 'Scan Library Card Now...',
+	title: 'Scan library card now or enter your username...',
 	buttons: {
 		'Next': function() { loginDialogOk(this); },
 		'Cancel': function() {
@@ -213,7 +212,7 @@ $('#scan_key_form').dialog({
 	draggable: false,
 	modal: true,
 	resizable: false,
-	title: 'Scan Key Now...',
+	title: 'Scan key now...',
 	buttons: {
 		'Next': function() { scanKeyDialogOk(this); },
 		'Cancel': function() {
@@ -236,7 +235,7 @@ $('#select_time_form').dialog({
 	draggable: false,
 	modal: true,
 	resizable: false,
-	title: 'Select Length of Time',
+	title: 'Select length of time...',
 	buttons: {
 		'Submit': function() { selectTimeDialogOk(this); },
 		'Cancel': function() {

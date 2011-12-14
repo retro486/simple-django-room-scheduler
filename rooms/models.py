@@ -45,12 +45,10 @@ class RoomKey(models.Model):
 # A list of tuples containing value, key pairs for reservations. Mostly for
 # statistics and for blocking off rooms to prevent bookings on holidays or
 # other days when the rooms are unavailable (under construction for example)
-# NOTE: any value of -1 will be blocked off on the calender and shown in the
-# legend and on the calendar with the "closed" styles and a value of 1 will
-# represent a normal reservation. No other values are used internally.
+# Currently, only these two are used internally.
 RES_TYPE_CHOICES = (
     (1, 'Normal'),
-    (-1, 'Closed'),
+    (2, 'Closed'),
 )
 
 class Reservation(models.Model):
